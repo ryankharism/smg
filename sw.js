@@ -1,4 +1,4 @@
-const CACHE_NAME = 'presensi-farm-v4'; // Ubah ke v selanjutnya agar browser tahu ada update
+const CACHE_NAME = 'presensi-farm-v5'; // Ubah ke v selanjutnya agar browser tahu ada update
 const urlsToCache = [
   './',
   'index.html',
