@@ -1,6 +1,6 @@
 {
   "name": "Semarang Farm",
-  "short_name": "SMG",
+  "short_name": "Semarang Farm",
   "description": "Aplikasi Presensi Tenaga Kerja Farm Semarang",
   "start_url": "index.html",
   "display": "standalone",
