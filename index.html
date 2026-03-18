@@ -3,52 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Semarang Farm</title>
-    
+    <title>Semarang Farm PWA</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#e21839">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-    <link rel="icon" type="image/png" sizes="192x192" href="icon/icon-192.png">
-    <link rel="apple-touch-icon" href="icon/icon-192.png">
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
-            width: 100%; 
-            background-color: #f6bac4; 
-            /* Menghilangkan scroll ganda pada body */
-            overflow: hidden; 
-        }
+        :root { --primary: #e21839; --bg: #f6bac4; --card-bg: #ffffff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #333; }
+        .header { text-align: center; padding: 20px 0; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+        .header h1 { margin: 0; font-size: 24px; }
+        
+        .card { background: var(--card-bg); border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .stat-item { text-align: center; background: #fff5f6; padding: 10px; border-radius: 10px; border: 1px solid #fbd0d7; }
+        .stat-val { display: block; font-size: 22px; font-weight: bold; color: var(--primary); }
+        .stat-lab { font-size: 10px; color: #666; text-transform: uppercase; }
 
-        .wrapper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            /* Memastikan scrolling halus di iOS */
-            -webkit-overflow-scrolling: touch;
-            overflow-y: auto;
-        }
-
-        iframe { 
-            width: 100%; 
-            height: 100%; 
-            border: none;
-            display: block;
-        }
+        .chart-container { position: relative; height: 300px; width: 100%; margin-top: 10px; }
+        
+        .loading { text-align: center; padding: 50px; font-weight: bold; color: var(--primary); }
+        #refreshBtn { width: 100%; padding: 12px; border: none; border-radius: 10px; background: var(--primary); color: white; font-weight: bold; margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <div class="wrapper">
-        <iframe src="https://script.google.com/macros/s/AKfycbzGt6bJL4khqOi32wVV89CLL68VkFZjVqYEqej2CpjRnpxoZFafymJwfZrvGGvswxkI/exec"></iframe>
+
+    <div class="header">
+        <h1>Semarang Farm</h1>
+        <p style="margin:5px 0 0 0; font-size: 12px; opacity: 0.9;">Monitoring Presensi Real-time</p>
+    </div>
+
+    <button id="refreshBtn" onclick="initDashboard()">🔄 Refresh Data</button>
+
+    <div id="mainContent">
+        <div class="card">
+            <div class="stats-grid">
+                <div class="stat-item"><span class="stat-val" id="totalHadir">-</span><span class="stat-lab">Hadir</span></div>
+                <div class="stat-item"><span class="stat-val" id="totalIn">-</span><span class="stat-lab">Grup In</span></div>
+                <div class="stat-item"><span class="stat-val" id="totalOut">-</span><span class="stat-lab">Grup Out</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0; font-size: 16px;">Sebaran Kelompok (Hari Ini)</h3>
+            <div class="chart-container">
+                <canvas id="pwaChart"></canvas>
+            </div>
+        </div>
     </div>
 
     <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzGt6bJL4khqOi32wVV89CLL68VkFZjVqYEqej2CpjRnpxoZFafymJwfZrvGGvswxkI/exec";
+        let myChart = null;
+
+        async function initDashboard() {
+            const btn = document.getElementById('refreshBtn');
+            btn.innerText = "Memuat...";
+            
+            try {
+                const response = await fetch(`${API_URL}?action=dashboard`);
+                const data = await response.json();
+                
+                document.getElementById('totalHadir').innerText = data.hadir;
+                document.getElementById('totalIn').innerText = data.kelompok.length;
+                
+                // Hitung kelompok yang sudah keluar (simulasi dari data hadir/belum)
+                // Karena API dashboard terbatas, kita tampilkan data yang ada
+                renderChart(data.kelompok);
+                
+            } catch (e) {
+                alert("Gagal memuat data. Pastikan koneksi internet stabil.");
+            } finally {
+                btn.innerText = "🔄 Refresh Data";
+            }
+        }
+
+        function renderChart(kelompokData) {
+            const ctx = document.getElementById('pwaChart').getContext('2d');
+            
+            const labels = kelompokData.map(k => k.nama);
+            const values = kelompokData.map(k => k.hadir);
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Personel Hadir',
+                        data: values,
+                        backgroundColor: '#e21839',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Ini yang bikin jadi Horizontal di Chart.js v3+
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, grid: { display: false } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Panggil saat buka
+        window.onload = initDashboard;
+
+        // Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
