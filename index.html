@@ -14,53 +14,52 @@
     <link rel="apple-touch-icon" href="icon/icon-192.png">
 
     <style>
-        /* Mencegah scroll pada body utama */
-        body, html { 
+        /* Reset total agar tidak ada margin/padding yang memotong lebar */
+        html, body { 
             margin: 0; 
             padding: 0; 
             height: 100%; 
             width: 100%; 
             background-color: #f6bac4; 
             overflow: hidden; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
         /* Container utama Iframe */
         .app-container {
             width: 100%;
             height: 100%;
-            position: relative;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Trik Scaling untuk Layar HP */
+        /* Wrapper Iframe harus bersih dari padding */
+        .iframe-wrapper {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            margin: 0;
+            padding: 0;
+            -webkit-overflow-scrolling: touch;
+            overflow-y: auto;
+        }
+
+        /* Iframe dipaksa lebar penuh tanpa border */
         iframe { 
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
+            margin: 0;
+            padding: 0;
         }
 
-        /* Jika layar di bawah 600px (HP), kita atur viewport-nya */
+        /* Khusus Layar HP: Memastikan tidak ada sisa ruang di sisi kiri/kanan */
         @media only screen and (max-width: 600px) {
-            iframe {
-                /* Mengatur agar konten di dalam iframe tidak memaksa lebar */
+            .iframe-wrapper {
                 width: 100vw;
                 height: 100vh;
             }
-        }
-
-        /* Menghilangkan header default Google Apps Script yang mengganggu */
-        .iframe-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            -webkit-overflow-scrolling: touch;
-            overflow-y: auto;
         }
     </style>
 </head>
